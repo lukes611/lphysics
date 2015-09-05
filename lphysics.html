@@ -1,0 +1,174 @@
+<!--
+JS code by Luke Lincoln
+ -->
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="lstructs.js"></script>
+<script src="lgraphics.js"></script>
+<script src="lscene.js"></script>
+</head>
+<body>
+
+<!-- canvas here -->
+<canvas id="myCanvas" width="1200" height="600" style="width:800px;height:400px;"></canvas>
+<span>
+<button id="pause_button">pause</button>
+<div id="oos"></div>
+<pre>
+Instructions:
+hit 'p' or click pause button: to suspend time
+hit 'd' to erase all objects
+
+Drawing polygons:
+click mouse on screen to draw polygons (must be convex and drawn with points counter-clockwise (do not draw last point))
+hit 'c' to erase what you have drawn
+hit 'a' to complete a polygon (green ones)
+hit 'b' to complete a fixed polygon with infinite mass (white ones)
+
+Drawing circles:
+draw two points and hit 's'
+</pre>
+</span>
+<script>
+//create a new 
+var g = new ll_LG('myCanvas', 1200, 600);
+
+var obverts1 = [new P2i(-5, -7), new P2i(-4,3), new P2i(15, 2), new P2i(14, -6)];
+obverts1.forEach(function(p){ p.scale(4);});
+var obverts2 = [new P2i(-2, 6), new P2i(4,6), new P2i(4, -6), new P2i(-2, -6)];
+obverts2.forEach(function(p){ p.scale(4);});
+var obv3 = [new P2i(0,0), new P2i(80, 0), new P2i(80, -10), new P2i(0, -10)];
+var obverts4 = [new P2i(17,84), new P2i(74, 84), new P2i(88, 34), new P2i(45, 4), new P2i(2,34)];
+obv3.forEach(function(p){ p.scale(3);});
+obverts4.forEach(function(p){ p.scale(0.7);});
+var draw_list = [];
+
+
+var scene = new LScene();
+scene.add_object(obverts1, false, {pos:new P2i(100, 90)});
+scene.add_object(obverts1, false, {pos:new P2i(260, 90), vel:new P2i(5,-4), ang_vel:8/57.3});
+scene.add_object(obverts4, false, {pos:new P2i(260, 280), vel:new P2i(5,-5), ang_vel:8/57.3});
+scene.add_object(obverts2, false, {pos:new P2i(1100, 120), vel:new P2i(0,-4.5), ang_vel:2/57.3});
+scene.add_object(obverts4, false, {pos:new P2i(1100, 290), vel:new P2i(-3,-4.5), ang_vel:2/57.3});
+scene.add_object(obverts2, false, {pos:new P2i(800, 290), vel:new P2i(3,-4.5), ang_vel:-1/57.3});
+scene.add_object(obverts2, false, {pos:new P2i(200, 90), ang_vel:-3/57.4});
+scene.add_object(obverts2, false, {pos:new P2i(80, 550), ang_vel:-3/57.4, vel:new P2i(15,-3)});
+scene.add_object(obverts2, false, {pos:new P2i(800, 550), ang_vel:-3/57.4, vel:new P2i(-15,-2)});
+scene.add_object(obverts1, true, {pos:new P2i(50, 300)});
+scene.add_object(obverts1, true, {pos:new P2i(170, 300)});
+scene.add_object(obv3, true, {pos:new P2i(1100, 500), orient:-45/57.3});
+
+var speed = 0.3;
+var running = false;
+
+var timer = undefined;
+
+function renderer()
+{
+	g.clear();
+	var i = 0;
+	var newObs = [];
+	for(; i < scene.objects.length; i++)
+	{
+		var bbox_col = (scene.objects[i].fixed)? 'black' : 'rgb(10,10,50)';
+		var col = (!scene.objects[i].fixed)? 'green' : 'white';
+		if(g.draw_object(scene.objects[i], col, bbox_col))
+			newObs.push(scene.objects[i]);
+		g.linev(scene.objects[i].pos.clone(), scene.objects[i].pos.clone().add(scene.objects[i].vel.clone().scale(2)), 'red');
+	}
+	scene.objects = newObs;
+	$('#oos').html('objects on screen: ' + scene.objects.length);
+	for(i = 0; i < draw_list.length-1; i++)
+	{
+		g.linev(draw_list[i], draw_list[i+1], 'blue');
+		
+	}
+	requestAnimationFrame(renderer);
+}
+
+function physics_loop()
+{
+	scene.apply_physics();
+	scene.step(speed);
+}
+
+function pause()
+{
+	if(running)
+		clearInterval(timer);
+	else timer = setInterval(physics_loop, speed);
+	running = !running;
+}
+
+$(document).ready(function()
+{
+
+	renderer();
+	
+	timer = setInterval(physics_loop, speed);
+	running = true;
+	$('#pause_button').click(function()
+	{
+		pause();
+	});
+});
+var canvas = document.getElementById('myCanvas');
+canvas.addEventListener('click', function(evt) 
+{
+	var rect = canvas.getBoundingClientRect();
+	var pos = new P2i(evt.clientX - rect.left, evt.clientY - rect.top);
+	pos.scale(1.5);
+	draw_list.push(pos.clone());
+	
+}, false);
+
+document.addEventListener('keypress', function(e)
+{
+	console.log(e.charCode);
+	if(e.charCode == 97)//a
+	{
+		scene.add_object(draw_list, false, {pos : new LShape(draw_list, true).get_avg()});
+		draw_list = [];
+	}
+	if(e.charCode == 98)//b
+	{
+		scene.add_object(draw_list, true, {pos : new LShape(draw_list, true).get_avg()});
+		draw_list = [];
+	}
+	if(e.charCode == 115)//s
+	{
+		if(draw_list.length == 2)
+		{
+			var mid = draw_list[0];
+			var rad = draw_list[0].dist(draw_list[1]);
+			var n = 20;
+			var inc = 360 / n;
+			var i =0, j = 0;
+			var pts = [];
+			for(j=360; i < n; i++, j-=inc)
+			{
+				var p = new P2i(rad * Math.cos(j / 57.3), rad * Math.sin(j/57.3));
+				pts.push(p.clone());
+			}
+			scene.add_object(pts, false, {pos : mid.clone(), restitution : 0.5});
+		}
+		draw_list = [];
+	}
+	if(e.charCode == 99)//c
+	{
+		draw_list = [];
+	}
+	if(e.charCode == 100)//d
+	{
+		scene.objects = [];
+	}
+	if(e.charCode == 112)//p
+		pause();
+});
+
+</script>
+
+</body>
+</html>
