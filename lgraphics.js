@@ -20,6 +20,16 @@ ll_LG.prototype.in_rangev = function(p)
 	return this.in_range(p.x, p.y);
 };
 
+ll_LG.prototype.in_rangetd = function(x, y)
+{
+	return x >= 0 && x < this.width && y < this.height;
+};
+
+ll_LG.prototype.in_rangetdv = function(p)
+{
+	return this.in_rangetd(p.x, p.y);
+};
+
 ll_LG.prototype.clear = function(col)
 {
 	if(col == undefined) col = 'black';
@@ -81,7 +91,7 @@ ll_LG.prototype.draw_shape = function(ob, col)
 	{
 		var j = (i+1) % ob.points.length;
 		this.line(ob.points[i].x, ob.points[i].y, ob.points[j].x, ob.points[j].y, col);
-		rv = rv || this.in_rangev(ob.points[i]);
+		rv = rv || this.in_rangetdv(ob.points[i]);
 	}
 	var avg = ob.get_avg();
 	this.linev(avg, ob.points[0], col);
