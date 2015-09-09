@@ -1,4 +1,4 @@
-
+//Java code by Luke Lincoln
 public class LObj {
 	
 	boolean fixed;

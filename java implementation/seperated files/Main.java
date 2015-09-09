@@ -2,7 +2,7 @@ import java.awt.Color;
 
 import javax.swing.JFrame;
 
-
+//Java code by Luke Lincoln
 public class Main{
 
 	

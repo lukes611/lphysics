@@ -1,6 +1,6 @@
 import java.util.ArrayList;
 
-
+//Java code by Luke Lincoln
 public class LShape {
 
 	P2i[] points;

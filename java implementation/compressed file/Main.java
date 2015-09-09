@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-
+//Java code by Luke Lincoln
 public class Main {
 
 	public static void main(String[] args) {

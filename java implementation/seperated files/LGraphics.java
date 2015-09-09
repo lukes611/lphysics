@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
-
+//Java code by Luke Lincoln
 public class LGraphics extends JPanel
 {
 	int width, height, offsetx, offsety;
